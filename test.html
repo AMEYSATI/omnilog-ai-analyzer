@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>My Awesome Website</h1>
+    <button onclick="causeError()">Click to Crash the Site!</button>
+
+    <script>
+        // THE LISTENER: This catches any error on the page
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.log("Catching error...");
+            
+            // THE PHONE CALL: Sending data to YOUR backend
+            fetch('http://localhost:3000/collect-log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    projectId: "REAL_WEBSITE_TEST",
+                    message: message,
+                    stackTrace: error ? error.stack : `Error at ${source}:${lineno}`
+                })
+            });
+        };
+
+        function causeError() {
+            // This will crash because 'x' is not defined
+            console.log(x); 
+        }
+    </script>
+</body>
+</html>
