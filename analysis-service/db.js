@@ -3,6 +3,7 @@ import { PostgresDialect } from '@sequelize/postgres';
 import 'dotenv/config';
 
 const sequelize = new Sequelize({
+  // Database configuration
   dialect: PostgresDialect,
   url: process.env.POSTGRES_URL,
   logging: false,
@@ -27,6 +28,7 @@ export const AnalysisResult = sequelize.define('AnalysisResult', {
   },
 });
 
+// Function to connect to the database
 export const connectDB = async () => {
   try {
     await sequelize.authenticate();

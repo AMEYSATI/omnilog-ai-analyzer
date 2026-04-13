@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import { connectDB, AnalysisResult } from './db.js';
+import { createServer } from 'http'; // Built-in Node module
+import { Server } from 'socket.io';
 
 const app = express();
 const port = 3001;
@@ -9,6 +11,16 @@ app.use(cors());
 app.use(express.json());
 
 connectDB();
+
+const httpServer = createServer(app);
+
+// 2. Initialize Socket.io on that server
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*", // In production, you'd put your frontend URL here
+    methods: ["GET", "POST"]
+  }
+});
 
 app.get('/logs', async (req, res) => {
   try {
@@ -24,6 +36,16 @@ app.get('/logs', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`📊 Dashboard API running at http://localhost:${port}`);
+app.post('/internal/notify', (req, res) => {
+    const analyzedLog = req.body;
+    
+    // 4. SHOUT the data to all connected browsers
+    io.emit('new_log_ready', analyzedLog);
+    
+    res.status(200).send('Notification broadcasted');
+});
+
+// IMPORTANT: Use httpServer.listen, NOT app.listen
+httpServer.listen(port, () => {
+  console.log('🚀 Dashboard & WebSocket Server running on port 3001');
 });

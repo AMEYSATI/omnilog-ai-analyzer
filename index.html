@@ -11,6 +11,8 @@
       darkMode: 'class'
       }
     </script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    
     <style>
       .prose ol {
       list-style-type: decimal;
@@ -26,6 +28,7 @@
     </style>
   </head>
   <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen p-8 transition-colors">
+    
     <div class="max-w-6xl mx-auto">
       <header class="flex justify-between items-center mb-8">
         <div>
@@ -68,184 +71,253 @@
       </div>
     </div>
     <script>
-      let allLogs = []
-      let currentPage = 1
-      const pageSize = 10
-      
-      function toggleTheme(){
-      document.documentElement.classList.toggle("dark")
-      localStorage.setItem(
-      "theme",
-      document.documentElement.classList.contains("dark") ? "dark":"light"
-      )
-      }
-      
-      if(localStorage.getItem("theme")==="light"){
-      document.documentElement.classList.remove("dark")
-      }else{
-      document.documentElement.classList.add("dark")
-      }
-      
-      function getSeverity(message){
-      const text = message.toLowerCase()
-      
-      if(text.includes("fatal")||text.includes("panic")||text.includes("critical"))
-      return {label:"CRITICAL",color:"bg-red-600"}
-      
-      if(text.includes("security"))
-      return {label:"SECURITY",color:"bg-purple-600"}
-      
-      if(text.includes("error"))
-      return {label:"ERROR",color:"bg-orange-500"}
-      
-      return {label:"INFO",color:"bg-gray-600"}
-      }
-      
-      function getPriority(message){
-      const text = message.toLowerCase()
-      
-      if(text.includes("fatal")||text.includes("security")) return 1
-      if(text.includes("error")) return 3
-      return 5
-      }
-      
-      async function fetchLogs(){
-      const response = await fetch("http://localhost:3001/logs")
-      allLogs = await response.json()
-      currentPage=1
-      render()
-      }
-      
-      function render(){
-      
-      const search = document.getElementById("searchBox").value.toLowerCase()
-      
-      let logs = allLogs.filter(l =>
-      (l.message||"").toLowerCase().includes(search) ||
-      (l.analysis||"").toLowerCase().includes(search) ||
-      (l.projectId||"").toLowerCase().includes(search)
-      )
-      
-      const start = (currentPage-1)*pageSize
-      const paginated = logs.slice(start,start+pageSize)
-      
-      document.getElementById("logs-container").innerHTML =
-      paginated.map(log => {
-      
-      const severity = getSeverity(log.message||"")
-      const priority = getPriority(log.message||"")
-      
-      return `
-      <div class="bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 p-6 rounded-r-xl shadow-lg">
-      
-      <div class="flex justify-between items-start mb-4">
-      
+      // ============================
+// state
+// ============================
+
+let allLogs = []
+let currentPage = 1
+const pageSize = 10
+
+// ============================
+// SOCKET.IO (REALTIME)
+// ============================
+
+// 1. Connect to the Dashboard Server
+const socket = io("http://localhost:3001");
+
+// 2. Listen for the 'new_log_ready' shout from the server
+socket.on("new_log_ready", (newLog) => {
+    console.log("🚀 Real-time log received!", newLog);
+    
+    // 3. Add the new log to the VERY BEGINNING of your array
+    allLogs.unshift(newLog);
+    
+    // 4. Run your existing render function to update the screen
+    render();
+});
+// ============================
+// theme
+// ============================
+
+function toggleTheme(){
+  document.documentElement.classList.toggle("dark")
+
+  localStorage.setItem(
+    "theme",
+    document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light"
+  )
+}
+
+if(localStorage.getItem("theme")==="light"){
+  document.documentElement.classList.remove("dark")
+}else{
+  document.documentElement.classList.add("dark")
+}
+
+// ============================
+// severity
+// ============================
+
+function getSeverity(message){
+  const text = message.toLowerCase()
+
+  if(text.includes("fatal") || text.includes("panic") || text.includes("critical"))
+    return {label:"CRITICAL",color:"bg-red-600"}
+
+  if(text.includes("security"))
+    return {label:"SECURITY",color:"bg-purple-600"}
+
+  if(text.includes("error"))
+    return {label:"ERROR",color:"bg-orange-500"}
+
+  return {label:"INFO",color:"bg-gray-600"}
+}
+
+// ============================
+// priority
+// ============================
+
+function getPriority(message){
+  const text = message.toLowerCase()
+
+  if(text.includes("fatal") || text.includes("security")) return 1
+  if(text.includes("error")) return 3
+  return 5
+}
+
+// ============================
+// fetch logs
+// ============================
+
+async function fetchLogs(){
+  const response = await fetch("http://localhost:3001/logs")
+  allLogs = await response.json()
+  currentPage = 1
+  render()
+}
+
+// ============================
+// render
+// ============================
+
+function render(){
+
+  const search =
+    document.getElementById("searchBox").value.toLowerCase()
+
+  let logs = allLogs.filter(l =>
+    (l.message||"").toLowerCase().includes(search) ||
+    (l.analysis||"").toLowerCase().includes(search) ||
+    (l.projectId||"").toLowerCase().includes(search)
+  )
+
+  const start = (currentPage-1)*pageSize
+  const paginated = logs.slice(start,start+pageSize)
+
+  document.getElementById("logs-container").innerHTML =
+    paginated.map(renderLog).join("")
+
+  setupDropdowns()
+  setupPagination(logs.length)
+}
+
+// ============================
+// render single card
+// ============================
+
+function renderLog(log){
+
+  const severity = getSeverity(log.message||"")
+  const priority = getPriority(log.message||"")
+
+  return `
+  <div class="bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 p-6 rounded-r-xl shadow-lg">
+
+    <div class="flex justify-between items-start mb-4">
+
       <div class="flex gap-2 items-center">
-      
-      <span class="bg-gray-300 dark:bg-gray-700 text-blue-700 dark:text-blue-300 text-xs font-mono px-3 py-1 rounded">
-      ${log.projectId}
-      </span>
-      
-      <span class="${severity.color} text-white text-xs px-2 py-1 rounded">
-      ${severity.label}
-      </span>
-      
-      <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">
-      P${priority}
-      </span>
-      
+
+        <span class="bg-gray-300 dark:bg-gray-700 text-blue-700 dark:text-blue-300 text-xs font-mono px-3 py-1 rounded">
+          ${log.projectId}
+        </span>
+
+        <span class="${severity.color} text-white text-xs px-2 py-1 rounded">
+          ${severity.label}
+        </span>
+
+        <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">
+          P${priority}
+        </span>
+
       </div>
-      
+
       <span class="text-gray-500 text-sm">
-      ${new Date(log.createdAt).toLocaleString()}
+        ${new Date(log.createdAt).toLocaleString()}
       </span>
-      
-      </div>
-      
-      <h3 class="text-xl font-bold text-red-500 dark:text-red-400 mb-2">
+
+    </div>
+
+    <h3 class="text-xl font-bold text-red-500 dark:text-red-400 mb-2">
       ${log.message}
-      </h3>
-      
-      <div class="bg-gray-200 dark:bg-black/30 p-4 rounded-lg mb-4">
-      <p class="text-sm font-mono text-gray-700 dark:text-gray-400 truncate">
-      ${log.stackTrace || "No stack trace"}
+    </h3>
+
+    <div class="bg-gray-200 dark:bg-black/30 p-4 rounded-lg mb-4">
+      <p class="text-sm font-mono text-gray-700 dark:text-gray-400">
+        ${log.stackTrace || "No stack trace"}
       </p>
-      </div>
-      
-      <details class="dropdown 
+    </div>
+
+    <details class="dropdown 
       bg-blue-100 dark:bg-blue-900/10
       border border-blue-300 dark:border-blue-800/30
       rounded-lg group">
-      
+
       <summary class="cursor-pointer p-6 flex justify-between items-center 
       text-blue-700 dark:text-blue-400 
       font-bold text-sm uppercase">
-      
-      AI Analysis & Suggested Fix
-      
-      <span class="transition group-open:rotate-180">▼</span>
-      
+
+        AI Analysis & Suggested Fix
+
+        <span class="transition group-open:rotate-180">▼</span>
+
       </summary>
-      
+
       <div class="p-6 prose dark:prose-invert max-w-none 
       text-gray-800 dark:text-gray-300">
-      
-      ${marked.parse(log.analysis)}
-      
+
+        ${marked.parse(log.analysis)}
+
       </div>
-      
-      </details>
-      
-      </div>
-      `
-      }).join("")
-      
-      setupDropdowns()
-      setupPagination(logs.length)
-      }
-      
-      function setupDropdowns(){
-      const all = document.querySelectorAll(".dropdown")
-      all.forEach(d=>{
-      d.addEventListener("toggle",()=>{
+
+    </details>
+
+  </div>
+  `
+}
+
+// ============================
+// dropdown single open
+// ============================
+
+function setupDropdowns(){
+  const all = document.querySelectorAll(".dropdown")
+
+  all.forEach(d=>{
+    d.addEventListener("toggle",()=>{
       if(d.open){
-      all.forEach(o=>{
-      if(o!==d) o.open=false
-      })
+        all.forEach(o=>{
+          if(o!==d) o.open=false
+        })
       }
-      })
-      })
-      }
-      
-      function setupPagination(total){
-      
-      const totalPages = Math.ceil(total/pageSize)
-      
-      document.getElementById("pageInfo").innerText =
-      `Page ${currentPage} / ${totalPages}`
-      
-      document.getElementById("prevBtn").onclick=()=>{
-      if(currentPage>1){
+    })
+  })
+}
+
+// ============================
+// pagination
+// ============================
+
+function setupPagination(total){
+
+  const totalPages = Math.ceil(total/pageSize)
+
+  document.getElementById("pageInfo").innerText =
+    `Page ${currentPage} / ${totalPages}`
+
+  document.getElementById("prevBtn").onclick=()=>{
+    if(currentPage>1){
       currentPage--
       render()
-      }
-      }
-      
-      document.getElementById("nextBtn").onclick=()=>{
-      if(currentPage<totalPages){
+    }
+  }
+
+  document.getElementById("nextBtn").onclick=()=>{
+    if(currentPage<totalPages){
       currentPage++
       render()
-      }
-      }
-      }
-      
-      document.getElementById("searchBox").addEventListener("input",()=>{
-      currentPage=1
-      render()
-      })
-      
-      fetchLogs()
-      
+    }
+  }
+}
+
+// ============================
+// search
+// ============================
+
+document
+.getElementById("searchBox")
+.addEventListener("input",()=>{
+  currentPage=1
+  render()
+})
+
+// ============================
+// init
+// ============================
+
+fetchLogs()
     </script>
   </body>
 </html>
