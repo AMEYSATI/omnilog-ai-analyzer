@@ -23,7 +23,7 @@ const worker = new Worker('error-logs', async (job) => {
     const savedLog = await AnalysisResult.create({ userId, projectId, message, stackTrace, analysis: response });
     try {
     // Tell the Dashboard service: "Hey, I finished one! Here is the data."
-    await axios.post('http://localhost:3001/internal/notify', savedLog);
+    await axios.post('http://omnilog-ai-analyzer-production.up.railway.app/internal/notify', savedLog);
     console.log("✅ Dashboard notified of new analysis.");
     } catch (error) {
         console.error("Failed to notify dashboard:", error.message);
