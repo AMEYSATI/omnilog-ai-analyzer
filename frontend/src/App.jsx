@@ -15,7 +15,7 @@ function App() {
   const handleLogin = async (credentials, mode) => {
   try {
     const endpoint = mode === 'signup' ? '/signup' : '/login';
-    const response = await axios.post(`http://localhost:3001${endpoint}`, credentials);
+    const response = await axios.post(`omnilog-ai-analyzer-production.up.railway.app${endpoint}`, credentials);
     
     // 1. Grab both the token and the apiKey
     const { token, apiKey } = response.data;
