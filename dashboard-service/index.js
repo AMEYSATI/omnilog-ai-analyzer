@@ -12,7 +12,7 @@ const app = express();
 const port = 3001;
 
 app.use(cors({
-  origin: "https://omnilog-ai-analyzer-2abfclqjp-ameysatis-projects.vercel.app/",
+  origin: "https://omnilog-ai-analyzer.vercel.app/",
   methods: ["GET", "POST"],
   credentials: true
 }));
@@ -62,7 +62,7 @@ app.post('/login', async (req, res) => {
 // 2. Initialize Socket.io on that server
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://omnilog-ai-analyzer-2abfclqjp-ameysatis-projects.vercel.app/", // In production, you'd put your frontend URL here
+    origin: "https://omnilog-ai-analyzer.vercel.app/", // In production, you'd put your frontend URL here
     methods: ["GET", "POST"],
     credentials: true
   }

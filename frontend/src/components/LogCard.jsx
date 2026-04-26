@@ -1,5 +1,5 @@
 import React from 'react';
-import { getSeverity, getPriority } from '../utils/helper.js';
+import { getSeverity, getPriority } from '../utils/helper';
 import { ChevronDown, AlertCircle, Clock } from 'lucide-react';
 
 const LogCard = ({ log }) => {
