@@ -10,6 +10,10 @@ const sequelize = new Sequelize({
 });
 
 export const AnalysisResult = sequelize.define('AnalysisResult', {
+  userId: { 
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
   projectId: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -28,11 +32,12 @@ export const AnalysisResult = sequelize.define('AnalysisResult', {
   },
 });
 
+
 // Function to connect to the database
 export const connectDB = async () => {
   try {
     await sequelize.authenticate();
-    await sequelize.sync(); // This creates the table if it doesn't exist!
+    await sequelize.sync({ alter: true }) // This creates the table if it doesn't exist!
     console.log('✅ PostgreSQL Connected & Tables Synced');
   } catch (error) {
     console.error('❌ Postgres Connection Error:', error);

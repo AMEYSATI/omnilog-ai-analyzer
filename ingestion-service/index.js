@@ -21,10 +21,10 @@ function SeverityScanner(message){
 }
 
 app.post('/collect-log', async (req, res) => {
-  const { message, stackTrace, projectId} = req.body;
+  const { userId, message, stackTrace, projectId} = req.body;
   const jobPrioity=SeverityScanner(message);
   try{
-    await errLogs.add('process-log', { message, stackTrace, projectId }, {  priority: jobPrioity });
+    await errLogs.add('process-log', { userId, message, stackTrace, projectId }, {  priority: jobPrioity });
     res.sendStatus(202);
   } catch(err){
     console.log(err);

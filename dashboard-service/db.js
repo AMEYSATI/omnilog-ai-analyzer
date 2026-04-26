@@ -9,6 +9,10 @@ const sequelize = new Sequelize({
 });
 
 export const AnalysisResult = sequelize.define('AnalysisResult', {
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
   projectId: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -26,6 +30,7 @@ export const AnalysisResult = sequelize.define('AnalysisResult', {
     allowNull: false,
   },
 });
+
 
 export const connectDB = async () => {
   try {

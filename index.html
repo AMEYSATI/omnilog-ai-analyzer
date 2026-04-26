@@ -27,297 +27,110 @@
       }
     </style>
   </head>
-  <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen p-8 transition-colors">
-    
-    <div class="max-w-6xl mx-auto">
-      <header class="flex justify-between items-center mb-8">
-        <div>
-          <h1 class="text-4xl font-bold text-blue-500 dark:text-blue-400">
-            OmniLog <span class="text-gray-900 dark:text-white">AI</span>
-          </h1>
-          <p class="text-gray-600 dark:text-gray-400 mt-2">
-            Real-time AI Error Analysis & Persistence
-          </p>
-        </div>
-        <div class="flex gap-3">
-          <input
-            id="searchBox"
-            placeholder="Search logs..."
-            class="bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-4 py-2 rounded-lg"
+  <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors">
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // --- COMPONENT: Log Card ---
+    const LogCard = ({ log }) => {
+      // Logic for severity/priority moved here
+      const getSeverity = (msg) => {
+        const text = (msg || "").toLowerCase();
+        if (text.includes("fatal") || text.includes("panic")) return { label: "CRITICAL", color: "bg-red-600" };
+        if (text.includes("error")) return { label: "ERROR", color: "bg-orange-500" };
+        return { label: "INFO", color: "bg-gray-600" };
+      };
+
+      const sev = getSeverity(log.message);
+
+      return (
+        <div className="bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 p-6 rounded-r-xl shadow-lg">
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex gap-2">
+              <span className="bg-gray-300 dark:bg-gray-700 text-blue-700 dark:text-blue-300 px-3 py-1 rounded text-xs">{log.projectId}</span>
+              <span className={`${sev.color} text-white px-2 py-1 rounded text-xs`}>{sev.label}</span>
+            </div>
+            <span className="text-gray-500 text-sm">{new Date(log.createdAt).toLocaleString()}</span>
+          </div>
+          <h3 className="text-xl font-bold text-red-500 mb-2">{log.message}</h3>
+          <div className="bg-gray-200 dark:bg-black/30 p-4 rounded-lg mb-4 font-mono text-sm">
+            {log.stackTrace || "No stack trace"}
+          </div>
+          <details className="bg-blue-100 dark:bg-blue-900/10 border border-blue-300 dark:border-blue-800/30 rounded-lg group">
+            <summary className="cursor-pointer p-4 font-bold text-blue-700 dark:text-blue-400">AI ANALYSIS ▼</summary>
+            <div 
+                className="p-4 prose dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: marked.parse(log.analysis || "") }} 
             />
-          <button
-            onclick="toggleTheme()"
-            class="bg-gray-300 dark:bg-gray-700 px-4 py-2 rounded-lg"
-            >
-          🌗
-          </button>
-          <button
-            onclick="fetchLogs()"
-            class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-lg font-semibold transition text-white"
-            >
-          Refresh
-          </button>
+          </details>
         </div>
-      </header>
-      <div id="logs-container" class="grid gap-6"></div>
-      <div class="flex justify-center mt-8 gap-3">
-        <button id="prevBtn" class="bg-gray-300 dark:bg-gray-700 px-4 py-2 rounded">
-        Prev
-        </button>
-        <span id="pageInfo" class="px-4 py-2"></span>
-        <button id="nextBtn" class="bg-gray-300 dark:bg-gray-700 px-4 py-2 rounded">
-        Next
-        </button>
-      </div>
-    </div>
-    <script>
-      // ============================
-// state
-// ============================
+      );
+    };
 
-let allLogs = []
-let currentPage = 1
-const pageSize = 10
+    // --- MAIN APP ---
+    const App = () => {
+      const [logs, setLogs] = useState([]);
+      const [search, setSearch] = useState("");
+      const [page, setPage] = useState(1);
+      const pageSize = 10;
 
-// ============================
-// SOCKET.IO (REALTIME)
-// ============================
+      // 1. Initial Fetch & Socket Setup
+      useEffect(() => {
+        fetch("http://localhost:3001/logs")
+          .then(res => res.json())
+          .then(data => setLogs(data));
 
-// 1. Connect to the Dashboard Server
-const socket = io("http://localhost:3001");
+        const socket = io("http://localhost:3001");
+        socket.on("new_log_ready", (newLog) => {
+          setLogs(prev => [newLog, ...prev]);
+        });
 
-// 2. Listen for the 'new_log_ready' shout from the server
-socket.on("new_log_ready", (newLog) => {
-    console.log("🚀 Real-time log received!", newLog);
-    
-    // 3. Add the new log to the VERY BEGINNING of your array
-    allLogs.unshift(newLog);
-    
-    // 4. Run your existing render function to update the screen
-    render();
-});
-// ============================
-// theme
-// ============================
+        return () => socket.disconnect();
+      }, []);
 
-function toggleTheme(){
-  document.documentElement.classList.toggle("dark")
+      // 2. Filter & Pagination Logic
+      const filteredLogs = logs.filter(l => 
+        (l.message||"").toLowerCase().includes(search.toLowerCase()) ||
+        (l.projectId||"").toLowerCase().includes(search.toLowerCase())
+      );
 
-  localStorage.setItem(
-    "theme",
-    document.documentElement.classList.contains("dark")
-      ? "dark"
-      : "light"
-  )
-}
+      const paginatedLogs = filteredLogs.slice((page - 1) * pageSize, page * pageSize);
 
-if(localStorage.getItem("theme")==="light"){
-  document.documentElement.classList.remove("dark")
-}else{
-  document.documentElement.classList.add("dark")
-}
+      return (
+        <div className="max-w-6xl mx-auto p-8">
+          <header className="flex justify-between items-center mb-8">
+            <h1 className="text-4xl font-bold text-blue-500">OmniLog AI</h1>
+            <div className="flex gap-3">
+              <input 
+                className="bg-gray-200 dark:bg-gray-800 p-2 rounded-lg"
+                placeholder="Search..." 
+                onChange={(e) => {setSearch(e.target.value); setPage(1);}}
+              />
+              <button onClick={() => window.location.reload()} className="bg-blue-600 p-2 rounded text-white font-bold">Refresh</button>
+            </div>
+          </header>
 
-// ============================
-// severity
-// ============================
+          <div className="grid gap-6">
+            {paginatedLogs.map(log => <LogCard key={log.id} log={log} />)}
+          </div>
 
-function getSeverity(message){
-  const text = message.toLowerCase()
+          <div className="flex justify-center mt-8 gap-4 items-center">
+            <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="bg-gray-700 px-4 py-2 rounded disabled:opacity-50">Prev</button>
+            <span>Page {page} of {Math.ceil(filteredLogs.length / pageSize)}</span>
+            <button disabled={page >= filteredLogs.length / pageSize} onClick={() => setPage(p => p + 1)} className="bg-gray-700 px-4 py-2 rounded disabled:opacity-50">Next</button>
+          </div>
+        </div>
+      );
+    };
 
-  if(text.includes("fatal") || text.includes("panic") || text.includes("critical"))
-    return {label:"CRITICAL",color:"bg-red-600"}
-
-  if(text.includes("security"))
-    return {label:"SECURITY",color:"bg-purple-600"}
-
-  if(text.includes("error"))
-    return {label:"ERROR",color:"bg-orange-500"}
-
-  return {label:"INFO",color:"bg-gray-600"}
-}
-
-// ============================
-// priority
-// ============================
-
-function getPriority(message){
-  const text = message.toLowerCase()
-
-  if(text.includes("fatal") || text.includes("security")) return 1
-  if(text.includes("error")) return 3
-  return 5
-}
-
-// ============================
-// fetch logs
-// ============================
-
-async function fetchLogs(){
-  const response = await fetch("http://localhost:3001/logs")
-  allLogs = await response.json()
-  currentPage = 1
-  render()
-}
-
-// ============================
-// render
-// ============================
-
-function render(){
-
-  const search =
-    document.getElementById("searchBox").value.toLowerCase()
-
-  let logs = allLogs.filter(l =>
-    (l.message||"").toLowerCase().includes(search) ||
-    (l.analysis||"").toLowerCase().includes(search) ||
-    (l.projectId||"").toLowerCase().includes(search)
-  )
-
-  const start = (currentPage-1)*pageSize
-  const paginated = logs.slice(start,start+pageSize)
-
-  document.getElementById("logs-container").innerHTML =
-    paginated.map(renderLog).join("")
-
-  setupDropdowns()
-  setupPagination(logs.length)
-}
-
-// ============================
-// render single card
-// ============================
-
-function renderLog(log){
-
-  const severity = getSeverity(log.message||"")
-  const priority = getPriority(log.message||"")
-
-  return `
-  <div class="bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 p-6 rounded-r-xl shadow-lg">
-
-    <div class="flex justify-between items-start mb-4">
-
-      <div class="flex gap-2 items-center">
-
-        <span class="bg-gray-300 dark:bg-gray-700 text-blue-700 dark:text-blue-300 text-xs font-mono px-3 py-1 rounded">
-          ${log.projectId}
-        </span>
-
-        <span class="${severity.color} text-white text-xs px-2 py-1 rounded">
-          ${severity.label}
-        </span>
-
-        <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">
-          P${priority}
-        </span>
-
-      </div>
-
-      <span class="text-gray-500 text-sm">
-        ${new Date(log.createdAt).toLocaleString()}
-      </span>
-
-    </div>
-
-    <h3 class="text-xl font-bold text-red-500 dark:text-red-400 mb-2">
-      ${log.message}
-    </h3>
-
-    <div class="bg-gray-200 dark:bg-black/30 p-4 rounded-lg mb-4">
-      <p class="text-sm font-mono text-gray-700 dark:text-gray-400">
-        ${log.stackTrace || "No stack trace"}
-      </p>
-    </div>
-
-    <details class="dropdown 
-      bg-blue-100 dark:bg-blue-900/10
-      border border-blue-300 dark:border-blue-800/30
-      rounded-lg group">
-
-      <summary class="cursor-pointer p-6 flex justify-between items-center 
-      text-blue-700 dark:text-blue-400 
-      font-bold text-sm uppercase">
-
-        AI Analysis & Suggested Fix
-
-        <span class="transition group-open:rotate-180">▼</span>
-
-      </summary>
-
-      <div class="p-6 prose dark:prose-invert max-w-none 
-      text-gray-800 dark:text-gray-300">
-
-        ${marked.parse(log.analysis)}
-
-      </div>
-
-    </details>
-
-  </div>
-  `
-}
-
-// ============================
-// dropdown single open
-// ============================
-
-function setupDropdowns(){
-  const all = document.querySelectorAll(".dropdown")
-
-  all.forEach(d=>{
-    d.addEventListener("toggle",()=>{
-      if(d.open){
-        all.forEach(o=>{
-          if(o!==d) o.open=false
-        })
-      }
-    })
-  })
-}
-
-// ============================
-// pagination
-// ============================
-
-function setupPagination(total){
-
-  const totalPages = Math.ceil(total/pageSize)
-
-  document.getElementById("pageInfo").innerText =
-    `Page ${currentPage} / ${totalPages}`
-
-  document.getElementById("prevBtn").onclick=()=>{
-    if(currentPage>1){
-      currentPage--
-      render()
-    }
-  }
-
-  document.getElementById("nextBtn").onclick=()=>{
-    if(currentPage<totalPages){
-      currentPage++
-      render()
-    }
-  }
-}
-
-// ============================
-// search
-// ============================
-
-document
-.getElementById("searchBox")
-.addEventListener("input",()=>{
-  currentPage=1
-  render()
-})
-
-// ============================
-// init
-// ============================
-
-fetchLogs()
-    </script>
-  </body>
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
 </html>

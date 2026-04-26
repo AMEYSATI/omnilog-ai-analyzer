@@ -15,12 +15,12 @@ const model = genAI.getGenerativeModel({
 
 // If that still fails, try: "gemini-1.5-flash-latest"
 const worker = new Worker('error-logs', async (job) => {
-  const { message, stackTrace, projectId } = job.data;
+  const { userId, message, stackTrace, projectId } = job.data;
   const prompt = `Analyze this error for project ${projectId}: ${message}. Stack: ${stackTrace}`;
   try {
     const result = await model.generateContent(prompt);
     const response = await result.response.text();
-    const savedLog = await AnalysisResult.create({ projectId, message, stackTrace, analysis: response });
+    const savedLog = await AnalysisResult.create({ userId, projectId, message, stackTrace, analysis: response });
     try {
     // Tell the Dashboard service: "Hey, I finished one! Here is the data."
     await axios.post('http://localhost:3001/internal/notify', savedLog);
