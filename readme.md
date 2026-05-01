@@ -30,7 +30,10 @@ A React-based interface with a dedicated backend for managing user projects and 
 
 
 # How to test
-When you signin right click then go to inspect then console and see joined room variable. Copy that id , open postman and send a test error as such
+When you signin right click then go to inspect then console and see joined room variable. Copy that id , open postman and send a test error as such  
+
+
+
 **{
   "userId": "the copied id",
   "message": "Connection terminated unexpectedly due to password authentication failed for user 'postgres'",
