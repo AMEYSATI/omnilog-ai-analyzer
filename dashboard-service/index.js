@@ -12,7 +12,7 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 app.use(cors({
-  origin: "https://omnilog-ai-frontend.onrender.com/",
+  origin: "https://omnilog-ai-frontend.onrender.com",
   methods: ["GET", "POST"],
   credentials: true
 }));
@@ -62,7 +62,7 @@ app.post('/login', async (req, res) => {
 // 2. Initialize Socket.io on that server
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://omnilog-ai-frontend.onrender.com/", // In production, you'd put your frontend URL here
+    origin: "https://omnilog-ai-frontend.onrender.com", // In production, you'd put your frontend URL here
     methods: ["GET", "POST"],
     credentials: true
   }
