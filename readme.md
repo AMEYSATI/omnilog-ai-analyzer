@@ -31,12 +31,12 @@ A React-based interface with a dedicated backend for managing user projects and 
 
 # How to test
 When you signin right click then go to inspect then console and see joined room variable. Copy that id , open postman and send a test error as such
-{
+**{
   "userId": "the copied id",
   "message": "Connection terminated unexpectedly due to password authentication failed for user 'postgres'",
   "stackTrace": "at Client._handleError (/app/node_modules/pg/lib/client.js:355:19)\n at Connection.emit (node:events:517:28)\n at /app/node_modules/pg/lib/connection.js:156:24",
   "projectId": "Project-1"
-}
+}**
 
 After that check dashboard.
 Why is it difficult to get the id??
