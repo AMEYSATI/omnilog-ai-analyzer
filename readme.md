@@ -8,13 +8,13 @@ OmniLog AI is a distributed system designed to solve the "MTTR" (Mean Time To Re
 # System Architecture
 This project is built as a Microservices Monorepo, demonstrating proficiency in distributed systems and service orchestration.
 
-Ingestion Service: A high-speed entry point that validates incoming logs and offloads them to the queue.
+## Ingestion Service: A high-speed entry point that validates incoming logs and offloads them to the queue.
 
-Redis Queue (BullMQ): Acts as the system’s "waiting room," ensuring reliability and handling traffic spikes without losing data.
+## Redis Queue (BullMQ): Acts as the system’s "waiting room," ensuring reliability and handling traffic spikes without losing data.
 
-Analysis Worker: A specialized service that fetches jobs from Redis, interacts with the Gemini AI API, and pushes solutions to the database.
+## Analysis Worker: A specialized service that fetches jobs from Redis, interacts with the Gemini AI API, and pushes solutions to the database.
 
-Dashboard & Frontend: A React-based interface with a dedicated backend for managing user projects and live log updates.
+## Dashboard & Frontend: A React-based interface with a dedicated backend for managing user projects and live log updates.
 
 # Tech Stack
 •	Languages: Node.js, JavaScript
@@ -25,7 +25,7 @@ Dashboard & Frontend: A React-based interface with a dedicated backend for manag
 •	Hosting: Render
 
 
-4-How to test : When you signin right click then go to inspect then console and see joined room variable. Copy that id , open postman and send a test error as such
+# How to test : When you signin right click then go to inspect then console and see joined room variable. Copy that id , open postman and send a test error as such
 {
   "userId": "the copied id",
   "message": "Connection terminated unexpectedly due to password authentication failed for user 'postgres'",
