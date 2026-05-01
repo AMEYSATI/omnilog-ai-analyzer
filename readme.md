@@ -1,6 +1,9 @@
 # OmniLog AI
 
-![alt text](Gemini_Generated_Image_cmn4z4cmn4z4cmn4.png)
+
+![Omnilog AI Architecture](watermarked_img_18210174092490521634.png)
+
+---
 
 Real-Time Microservices Error Analysis Engine
 OmniLog AI is a distributed system designed to solve the "MTTR" (Mean Time To Resolution) gap. It ingests raw backend logs, processes them through an asynchronous pipeline, and leverages Gemini 2.5 Flash Lite to provide instant, actionable code fixes.
