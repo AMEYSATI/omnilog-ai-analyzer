@@ -6,6 +6,12 @@ const sequelize = new Sequelize({
   dialect: PostgresDialect,
   url: process.env.POSTGRES_URL,
   logging: false,
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false // This is necessary for Supabase/Railway
+    }
+  }
 });
 
 export const AnalysisResult = sequelize.define('AnalysisResult', {
