@@ -2,7 +2,6 @@
 Real-Time Microservices Error Analysis Engine
 OmniLog AI is a distributed system designed to solve the "MTTR" (Mean Time To Resolution) gap. It ingests raw backend logs, processes them through an asynchronous pipeline, and leverages Gemini 2.5 Flash Lite to provide instant, actionable code fixes.
 
-
 2- System Architecture
 This project is built as a Microservices Monorepo, demonstrating proficiency in distributed systems and service orchestration.
 
@@ -15,3 +14,16 @@ Analysis Worker: A specialized service that fetches jobs from Redis, interacts w
 Dashboard & Frontend: A React-based interface with a dedicated backend for managing user projects and live log updates.
 
 ![alt text](Gemini_Generated_Image_cmn4z4cmn4z4cmn4.png)
+
+3-Tech Stack
+•	Languages: Node.js, JavaScript
+•	Backend: Express, Redis (BullMQ)
+•	Database: PostgreSQL
+•	Frontend: React (Vite), Tailwind CSS
+•	AI: Google Gemini 2.5 Flash Lite
+•	Hosting: Render
+
+
+
+4-
+
