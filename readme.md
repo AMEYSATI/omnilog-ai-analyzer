@@ -1,7 +1,7 @@
 # OmniLog AI
 
+<img width="1408" height="768" alt="Gemini_Generated_Image_s0y1wss0y1wss0y1" src="https://github.com/user-attachments/assets/fc710176-4405-4fd1-bef2-f38875c1e5a7" />
 
-![Omnilog AI Architecture](watermarked_img_18210174092490521634.png)
 
 ---
 
