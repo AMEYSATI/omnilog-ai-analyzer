@@ -3,6 +3,19 @@ import axios from 'axios';
 import { connectDB , AnalysisResult } from './db.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Worker } from "bullmq";
+import express from 'express';
+
+const app = express();
+
+app.get('/ping', (req, res) => {
+  console.log("Worker poked! Staying awake...");
+  res.status(200).send('Awake');
+});
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Worker listener active on port ${PORT}`);
+});
 
 connectDB();
 const connection={url: process.env.REDIS_URL};
@@ -33,5 +46,7 @@ const worker = new Worker('error-logs', async (job) => {
     console.error(`Failed to analyze log for project ${projectId}:`, err);
   }
 }, { connection });
+
+
 
 
