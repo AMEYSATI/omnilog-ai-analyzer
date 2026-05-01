@@ -9,7 +9,7 @@ import { createServer } from 'http'; // Built-in Node module
 import { Server } from 'socket.io';
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 app.use(cors({
   origin: "https://omnilog-ai-analyzer.vercel.app/",
