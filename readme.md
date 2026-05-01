@@ -21,15 +21,16 @@ A specialized service that fetches jobs from Redis, interacts with the Gemini AI
 A React-based interface with a dedicated backend for managing user projects and live log updates.
 
 # Tech Stack
-•	Languages: Node.js, JavaScript
-•	Backend: Express, Redis (BullMQ)
-•	Database: PostgreSQL
-•	Frontend: React (Vite), Tailwind CSS
-•	AI: Google Gemini 2.5 Flash Lite
-•	Hosting: Render
+* Languages: Node.js, JavaScript
+* Backend: Express, Redis (BullMQ)
+* Database: PostgreSQL
+* Frontend: React (Vite), Tailwind CSS
+* AI: Google Gemini 2.5 Flash Lite
+* Hosting: Render
 
 
-# How to test : When you signin right click then go to inspect then console and see joined room variable. Copy that id , open postman and send a test error as such
+# How to test
+When you signin right click then go to inspect then console and see joined room variable. Copy that id , open postman and send a test error as such
 {
   "userId": "the copied id",
   "message": "Connection terminated unexpectedly due to password authentication failed for user 'postgres'",
