@@ -19,8 +19,8 @@ function Dashboard({ onLogout }) {
   const apiKey = localStorage.getItem('apiKey'); // Make sure this matches your login storage name
 
     const url = selectedProject 
-      ? `https://omnilog-ai-analyzer-production.up.railway.app/logs?projectId=${selectedProject}` 
-      : `https://omnilog-ai-analyzer-production.up.railway.app/logs`;
+      ? `https://dashboard-service-jmee.onrender.com/logs?projectId=${selectedProject}` 
+      : `https://dashboard-service-jmee.onrender.com/logs`;
 
     fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
@@ -48,7 +48,7 @@ function Dashboard({ onLogout }) {
       });
     
     // --- SOCKET LOGIC ---
-    const socket = io("https://omnilog-ai-analyzer-production.up.railway.app", { auth: { token } });
+    const socket = io("https://dashboard-service-jmee.onrender.com", { auth: { token } });
 
     if (apiKey) {
       socket.emit('join_dashboard', apiKey);
