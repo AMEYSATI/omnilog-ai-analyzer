@@ -2,7 +2,7 @@ import express from "express";
 import { Queue } from "bullmq";
 import 'dotenv/config';
 import cors from 'cors';
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 const app = express();
 app.use(cors());
