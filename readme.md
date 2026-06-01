@@ -45,6 +45,4 @@ When you signin right click then go to inspect then console and see joined room 
 }**
 
 After that check dashboard.
-Why is it difficult to get the id??
-I forgot to add a profile section and delete id option. Will add later. Sorry for the inconvenience, will add asap.
 
