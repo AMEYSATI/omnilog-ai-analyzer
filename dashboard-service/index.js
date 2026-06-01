@@ -5,7 +5,7 @@ import { connectDB, AnalysisResult } from './db.js';
 import jwt from 'jsonwebtoken';
 import authenticateToken from './middleware.js';
 import 'dotenv/config';
-import { createServer } from 'http'; // Built-in Node module
+import { createServer } from 'http';
 import { Server } from 'socket.io';
 
 const app = express();
@@ -47,7 +47,7 @@ app.post('/login', async (req, res) => {
 
         const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '24h' });
         
-        // ADD apiKey here so React can store it in localStorage
+        // Adding apiKey here so React can store it in localStorage
         res.json({ 
             token, 
             apiKey: user.apiKey 
@@ -59,10 +59,10 @@ app.post('/login', async (req, res) => {
 
 
 
-// 2. Initialize Socket.io on that server
+//Initialize Socket.io on that server
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://omnilog-ai-frontend.onrender.com", // In production, you'd put your frontend URL here
+    origin: "https://omnilog-ai-frontend.onrender.com",
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -83,11 +83,11 @@ app.get('/logs', authenticateToken, async (req, res) => {
   try {
     const { projectId } = req.query;
 
-    // 1. Find the user in the DB using the ID from the JWT token
+    // Find the user in the DB using the ID from the JWT token
     const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // 2. ONLY fetch logs belonging to this user's apiKey
+    // ONLY fetch logs belonging to this user's apiKey
     const whereClause = { userId: user.apiKey }; 
 
     if (projectId) {
@@ -108,7 +108,7 @@ app.get('/logs', authenticateToken, async (req, res) => {
 app.post('/internal/notify', async(req, res) => {
     const analyzedLog = req.body;
     let apiKeyFromWorker = analyzedLog.userId; // Assuming userId is being sent as part of the log data
-    // 4. SHOUT the data to all connected browsers
+    // SHOUT the data to all connected browsers
     try {
       const user = await User.findOne({ 
               where: { apiKey: apiKeyFromWorker } 
@@ -128,7 +128,7 @@ app.post('/internal/notify', async(req, res) => {
 
 });
 
-// IMPORTANT: Use httpServer.listen, NOT app.listen
+//Use httpServer.listen, NOT app.listen
 httpServer.listen(port, () => {
   console.log('🚀 Dashboard & WebSocket Server running on port 3001');
 });
